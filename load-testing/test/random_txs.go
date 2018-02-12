@@ -3,6 +3,7 @@ package test
 import (
 	"errors"
 	"fmt"
+	"github.com/skycoin/skycoin/src/wallet"
 	gcli "github.com/urfave/cli"
 	"time"
 )
@@ -16,6 +17,7 @@ const (
 
 var (
 	ErrSeedNotSpecified = errors.New("Seed value is requried but was not specified")
+	ErrNotEnoughCoins   = errors.New("Could not find an address with at leat 1 SKY")
 )
 
 func randomTxsCmd() gcli.Command {
@@ -49,8 +51,6 @@ func randomTxsCmd() gcli.Command {
 }
 
 func randomTxs(c *gcli.Context) error {
-	//rpc := RpcClientFromContext(c)
-
 	N := c.Int("n")
 	if N == 0 {
 		N = defaultN
@@ -65,10 +65,28 @@ func randomTxs(c *gcli.Context) error {
 		return ErrSeedNotSpecified
 	}
 
-	fmt.Printf("Starting random transactions load test, with %d test addresses generated with %s seed and %d seconds wait time between transactions\n", N, Seed, Wait)
+	fmt.Printf("Starting random transactions load test, with %d test addresses generated with \"%s\" seed and %d seconds wait time between transactions\n", N, Seed, Wait)
+
+	fmt.Println("Creating test wallet and generating addresses...")
+	wallet, err := createWallet("load-test-wallet", Seed)
+	if err != nil {
+		return err
+	}
+	addresses := wallet.GenerateAddresses(uint64(N))
+	fmt.Println("done")
 
 	sigs := *SigsFromContext(c)
+	rpc := *RpcClientFromContext(c)
 
+	var (
+		to   []string
+		from []string
+		t    = Split
+	)
+
+	from = findAddrWithMaxBalance(rpc)
+
+	fmt.Println("Running tests...")
 transactions:
 	for {
 		fmt.Println("starting job at", time.Now())
@@ -90,4 +108,16 @@ transactions:
 	}
 
 	return nil
+}
+
+func createWallet(name string, seed string) (*wallet.Wallet, error) {
+	return wallet.NewWallet(name, wallet.Options{
+		Coin:  wallet.CoinTypeSkycoin,
+		Label: name,
+		Seed:  seed,
+	})
+}
+
+func findAddrWithMaxBalance(client *webrpc.Client) ([]string, error) {
+	return nil, ErrNotEnoughCoins
 }
