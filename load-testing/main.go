@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/skycoin/services/load-testing/test"
+	"github.com/skycoin/services/load-testing/cli"
 	"os"
 )
 

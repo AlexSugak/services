@@ -1,12 +1,13 @@
-package test
+package cli
 
 import (
 	"fmt"
-	"github.com/skycoin/skycoin/src/api/webrpc"
-	gcli "github.com/urfave/cli"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/skycoin/skycoin/src/api/webrpc"
+	gcli "github.com/urfave/cli"
 )
 
 const (
@@ -69,26 +70,26 @@ func NewApp(c Config) *App {
 
 // Run starts the load testing cli app
 func (app *App) Run(args []string) error {
-	/*
-		rpc := app.Metadata["rpc"].(*webrpc.Client)
-		config := app.Metadata["config"].(Config)
+	rpc := app.Metadata["rpc"].(*webrpc.Client)
+	config := app.Metadata["config"].(Config)
 
-		// check node status
-		if s, err := rpc.GetStatus(); err != nil {
-			return fmt.Errorf("error connecting to node: %s\n", err)
-		} else if !s.Running {
-			return fmt.Errorf("Node is not runnint at %s\n", config.RpcAddress)
-		}
-	*/
+	// check node status
+	if s, err := rpc.GetStatus(); err != nil {
+		return fmt.Errorf("error connecting to node: %s", err)
+	} else if !s.Running {
+		return fmt.Errorf("node is not running at %s", config.RpcAddress)
+	}
 
 	return app.App.Run(args)
 }
 
+// SigsFromContext gets os signals channel from cli app context
 func SigsFromContext(c *gcli.Context) *chan os.Signal {
 	return c.App.Metadata["sigs"].(*chan os.Signal)
 }
 
-func RpcClientFromContext(c *gcli.Context) *webrpc.Client {
+// RPCClientFromContext gets webrpc client from cli app context
+func RPCClientFromContext(c *gcli.Context) *webrpc.Client {
 	return c.App.Metadata["rpc"].(*webrpc.Client)
 }
 
